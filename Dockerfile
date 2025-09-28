@@ -13,6 +13,10 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 RUN cd /var/www/html/extensions && \
     git clone https://github.com/kuenzign/WikiMarkdown.git WikiMarkdown
 
+# Install MsUpload extension for multiple file uploads
+RUN cd /var/www/html/extensions && \
+    git clone https://github.com/wikimedia/mediawiki-extensions-MsUpload.git MsUpload
+
 # Install dependencies using composer
 RUN cd /var/www/html/extensions/WikiMarkdown && \
     composer install --no-dev --ignore-platform-reqs

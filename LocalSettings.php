@@ -88,6 +88,43 @@ $wgImageMagickConvertCommand = "/usr/bin/convert";
 $wgMaxUploadSize = 500 * 1024 * 1024; // 500MB in bytes
 $wgUploadSizeWarning = 450 * 1024 * 1024; // Warning at 450MB
 
+# Enable support for many file formats
+$wgFileExtensions = array_merge(
+    $wgFileExtensions,
+    [
+        // Documents
+        'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp',
+        'rtf', 'txt', 'csv',
+
+        // Images (additional formats)
+        'svg', 'tiff', 'tif', 'bmp', 'ico', 'psd',
+
+        // Audio
+        'mp3', 'wav', 'ogg', 'flac', 'm4a', 'aac',
+
+        // Video
+        'mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv',
+
+        // Archives
+        'zip', 'rar', '7z', 'tar', 'gz', 'bz2',
+
+        // Code/Text files
+        'xml', 'json', 'css', 'js', 'php', 'py', 'java', 'cpp', 'c', 'h',
+
+        // Other formats
+        'epub', 'mobi', 'dwg', 'dxf', 'step', 'stp', 'iges', 'igs'
+    ]
+);
+
+# Allow uploads of executable files (be careful with security)
+$wgStrictFileExtensions = false; // Shows warning instead of blocking
+
+# MsUpload extension configuration
+$wgMSU_useDragDrop = true; // Enable drag & drop uploads
+$wgMSU_showAutoCat = true; // Show category options
+$wgMSU_checkAutoCat = true; // Auto-check category option
+$wgMSU_confirmReplace = true; // Confirm before replacing files
+
 # InstantCommons allows wiki to use images from https://commons.wikimedia.org
 $wgUseInstantCommons = true;
 
@@ -155,6 +192,7 @@ wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadExtension( 'WikiEditor' );
 wfLoadExtension( 'WikiMarkdown' );
+# wfLoadExtension( 'MsUpload' ); // Temporarily disabled until installation is fixed
 
 
 # End of automatically generated settings.
