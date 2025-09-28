@@ -193,6 +193,7 @@ wfLoadExtension( 'VisualEditor' );
 wfLoadExtension( 'WikiEditor' );
 wfLoadExtension( 'WikiMarkdown' );
 wfLoadExtension( 'Diagrams' );
+wfLoadExtension( 'EmbedVideo' );
 # wfLoadExtension( 'MsUpload' ); // Temporarily disabled until installation is fixed
 
 
@@ -229,6 +230,14 @@ $wgDiagramsLocalCommands = [
     'twopi' => '/usr/bin/twopi',
     'osage' => '/usr/bin/osage'
 ];
+
+# EmbedVideo extension configuration
+$wgEmbedVideoMinWidth = 300;
+$wgEmbedVideoMaxWidth = 800;
+$wgEmbedVideoDefaultWidth = 640;
+$wgEmbedVideoEnableVideoHandler = true;
+$wgEmbedVideoEnableAudioHandler = true;
+$wgFFmpegLocation = '/usr/bin/ffmpeg';
 
 # Enable detailed error reporting for debugging
 $wgShowExceptionDetails = true;

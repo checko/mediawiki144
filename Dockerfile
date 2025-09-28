@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y \
     mscgen \
     default-jre-headless \
     wget \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PlantUML
@@ -29,6 +30,10 @@ RUN cd /var/www/html/extensions && \
 # Install Diagrams extension for diagram drawing functionality
 RUN cd /var/www/html/extensions && \
     git clone https://github.com/samwilson/diagrams-extension.git Diagrams
+
+# Install EmbedVideo extension for video/audio embedding
+RUN cd /var/www/html/extensions && \
+    git clone https://github.com/StarCitizenWiki/mediawiki-extensions-EmbedVideo.git EmbedVideo
 
 # Install dependencies using composer
 RUN cd /var/www/html/extensions/WikiMarkdown && \
@@ -68,7 +73,8 @@ RUN echo "upload_max_filesize = 500M" >> /usr/local/etc/php/conf.d/uploads.ini &
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/extensions/WikiMarkdown && \
-    chown -R www-data:www-data /var/www/html/extensions/Diagrams
+    chown -R www-data:www-data /var/www/html/extensions/Diagrams && \
+    chown -R www-data:www-data /var/www/html/extensions/EmbedVideo
 
 # Expose port 80
 EXPOSE 80
