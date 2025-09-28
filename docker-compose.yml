@@ -1,0 +1,32 @@
+services:
+  mediawiki:
+    build: .
+    ports:
+      - "192.168.145.166:8050:80"
+    volumes:
+      - mediawiki_data:/var/www/html
+    depends_on:
+      - mysql
+    environment:
+      - MEDIAWIKI_DB_TYPE=mysql
+      - MEDIAWIKI_DB_HOST=mysql
+      - MEDIAWIKI_DB_NAME=mediawiki
+      - MEDIAWIKI_DB_USER=mediawiki
+      - MEDIAWIKI_DB_PASSWORD=mediawiki_password
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=mediawiki
+      - MYSQL_USER=mediawiki
+      - MYSQL_PASSWORD=mediawiki_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+
+volumes:
+  mediawiki_data:
+  mysql_data:
