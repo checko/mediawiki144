@@ -15,7 +15,7 @@ RUN cd /var/www/html/extensions && \
 
 # Install dependencies using composer
 RUN cd /var/www/html/extensions/WikiMarkdown && \
-    composer install --no-dev
+    composer install --no-dev --ignore-platform-reqs
 
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/extensions/WikiMarkdown
