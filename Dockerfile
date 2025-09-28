@@ -48,6 +48,16 @@ RUN sed -i 's/public static function onContentHandlerDefaultModelFor( Title \$ti
     sed -i 's/return Linker::makeHeadline.*$/return "<h{$matches[1]} id=\"{$anchor}\">{$matches[4]}<\/h{$matches[1]}>";/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
 
+# Fix PHP warnings and deprecated API calls in WikiMarkdown extension
+RUN sed -i 's/if ( \$wgAllowMarkdownExtended && ( false !== self::getParsedown()->options\['\''lists'\''\]\['\''tasks'\''\] ?? true ) ) {/\$parsedownOptions = self::getParsedown()->options ?? [];\n\t\t\$listsOptions = \$parsedownOptions['\''lists'\''] ?? [];\n\t\t\$tasksEnabled = \$listsOptions['\''tasks'\''] ?? false;\n\n\t\tif ( \$wgAllowMarkdownExtended \&\& \$tasksEnabled ) {/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/\$parser->enableOOUI();/\/\/ enableOOUI() is deprecated in MediaWiki 1.35+, OOUI is enabled by default/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/if ( \$wgAllowMarkdownExtended && ( false !== self::getParsedown()->options\['\''math'\''\] ?? false ) && ExtensionRegistry::getInstance()->isLoaded( '\''Math'\'' ) ) {/\$mathOptions = \$parsedownOptions['\''math'\''] ?? [];\n\t\t\$mathEnabled = \$mathOptions !== false \&\& !empty(\$mathOptions);\n\n\t\tif ( \$wgAllowMarkdownExtended \&\& \$mathEnabled \&\& ExtensionRegistry::getInstance()->isLoaded( '\''Math'\'' ) ) {/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/if ( self::getParsedown()->options\['\''math'\''\]\['\''single_dollar'\''\] ?? false ) {/if ( \$mathOptions['\''single_dollar'\''] ?? false ) {/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
+
 # Configure PHP for large file uploads (500MB)
 RUN echo "upload_max_filesize = 500M" >> /usr/local/etc/php/conf.d/uploads.ini && \
     echo "post_max_size = 500M" >> /usr/local/etc/php/conf.d/uploads.ini && \

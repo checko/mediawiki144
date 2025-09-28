@@ -142,6 +142,60 @@ class ResourceLoaderWikiMarkdownVisualEditorModule extends FileModule {
 }
 ```
 
+### 7. PHP Warning: Undefined Array Keys
+
+**Issue**: PHP warnings for undefined array keys
+```
+Warning: Undefined array key "lists" in WikiMarkdown.php on line 113
+Warning: Undefined array key "text" in ParsedownExtra.php on line 213
+Warning: Trying to access array offset on value of type null
+```
+
+**Root Cause**: Missing null checks when accessing Parsedown options arrays.
+
+**Solution**: Add proper null coalescing operators and safe array access
+
+**Before:**
+```php
+if ( $wgAllowMarkdownExtended && ( false !== self::getParsedown()->options['lists']['tasks'] ?? true ) ) {
+    $parser->enableOOUI();
+```
+
+**After:**
+```php
+$parsedownOptions = self::getParsedown()->options ?? [];
+$listsOptions = $parsedownOptions['lists'] ?? [];
+$tasksEnabled = $listsOptions['tasks'] ?? false;
+
+if ( $wgAllowMarkdownExtended && $tasksEnabled ) {
+    // enableOOUI() is deprecated in MediaWiki 1.35+, OOUI is enabled by default
+```
+
+### 8. Deprecated MediaWiki API Calls
+
+**Issue**: Deprecated method warnings
+```
+Deprecated: Use of MediaWiki\Parser\Parser::enableOOUI was deprecated in MediaWiki 1.35
+```
+
+**Root Cause**: `Parser::enableOOUI()` method deprecated in MediaWiki 1.35.
+
+**Solution**: Remove the deprecated call as OOUI is enabled by default
+
+**Before:**
+```php
+if ( $wgAllowMarkdownExtended && $tasksEnabled ) {
+    $parser->enableOOUI();
+    $out = preg_replace_callback(
+```
+
+**After:**
+```php
+if ( $wgAllowMarkdownExtended && $tasksEnabled ) {
+    // enableOOUI() is deprecated in MediaWiki 1.35+, OOUI is enabled by default
+    $out = preg_replace_callback(
+```
+
 ## Complete Fix Implementation
 
 ### Method 1: Manual File Editing
@@ -229,6 +283,16 @@ RUN sed -i 's/public static function onContentHandlerDefaultModelFor( Title \$ti
     sed -i '4i\use MediaWiki\\Html\\Html;' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
     sed -i 's/return Linker::makeHeadline.*$/return "<h{$matches[1]} id=\"{$anchor}\">{$matches[4]}<\/h{$matches[1]}>";/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
+
+# Fix PHP warnings and deprecated API calls in WikiMarkdown extension
+RUN sed -i 's/if ( \$wgAllowMarkdownExtended && ( false !== self::getParsedown()->options\['\''lists'\''\]\['\''tasks'\''\] ?? true ) ) {/\$parsedownOptions = self::getParsedown()->options ?? [];\n\t\t\$listsOptions = \$parsedownOptions['\''lists'\''] ?? [];\n\t\t\$tasksEnabled = \$listsOptions['\''tasks'\''] ?? false;\n\n\t\tif ( \$wgAllowMarkdownExtended \&\& \$tasksEnabled ) {/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/\$parser->enableOOUI();/\/\/ enableOOUI() is deprecated in MediaWiki 1.35+, OOUI is enabled by default/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/if ( \$wgAllowMarkdownExtended && ( false !== self::getParsedown()->options\['\''math'\''\] ?? false ) && ExtensionRegistry::getInstance()->isLoaded( '\''Math'\'' ) ) {/\$mathOptions = \$parsedownOptions['\''math'\''] ?? [];\n\t\t\$mathEnabled = \$mathOptions !== false \&\& !empty(\$mathOptions);\n\n\t\tif ( \$wgAllowMarkdownExtended \&\& \$mathEnabled \&\& ExtensionRegistry::getInstance()->isLoaded( '\''Math'\'' ) ) {/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/if ( self::getParsedown()->options\['\''math'\''\]\['\''single_dollar'\''\] ?? false ) {/if ( \$mathOptions['\''single_dollar'\''] ?? false ) {/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
 
 # Fix ResourceLoader module
@@ -319,6 +383,10 @@ $wgShowDebug = true;
 - [ ] Create account page works
 - [ ] Edit pages work
 - [ ] Special pages function
+- [ ] No PHP warnings for undefined array keys
+- [ ] No deprecated method warnings
+- [ ] Parsedown options accessed safely
+- [ ] OOUI checkboxes work (if using tasks)
 
 ## Dependencies
 
