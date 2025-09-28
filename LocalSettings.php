@@ -192,6 +192,7 @@ wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 wfLoadExtension( 'VisualEditor' );
 wfLoadExtension( 'WikiEditor' );
 wfLoadExtension( 'WikiMarkdown' );
+wfLoadExtension( 'Diagrams' );
 # wfLoadExtension( 'MsUpload' ); // Temporarily disabled until installation is fixed
 
 
@@ -215,6 +216,19 @@ $wgVisualEditorAvailableNamespaces = [
 # Use built-in Parsoid (MediaWiki 1.44 includes Parsoid)
 $wgVisualEditorRestbaseURL = false;
 $wgVisualEditorFullRestbaseURL = false;
+
+# Diagrams extension configuration
+$wgDiagramsLocalCommands = [
+    'mscgen' => '/usr/bin/mscgen',
+    'plantuml' => '/usr/local/bin/plantuml',
+    'dot' => '/usr/bin/dot',
+    'neato' => '/usr/bin/neato',
+    'fdp' => '/usr/bin/fdp',
+    'sfdp' => '/usr/bin/sfdp',
+    'circo' => '/usr/bin/circo',
+    'twopi' => '/usr/bin/twopi',
+    'osage' => '/usr/bin/osage'
+];
 
 # Enable detailed error reporting for debugging
 $wgShowExceptionDetails = true;

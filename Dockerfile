@@ -1,10 +1,19 @@
 FROM mediawiki:1.44
 
-# Install required tools
+# Install required tools and diagram dependencies
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
+    graphviz \
+    mscgen \
+    default-jre-headless \
+    wget \
     && rm -rf /var/lib/apt/lists/*
+
+# Install PlantUML
+RUN wget -O /usr/local/bin/plantuml.jar https://github.com/plantuml/plantuml/releases/download/v1.2024.0/plantuml-1.2024.0.jar && \
+    echo '#!/bin/bash\njava -jar /usr/local/bin/plantuml.jar "$@"' > /usr/local/bin/plantuml && \
+    chmod +x /usr/local/bin/plantuml
 
 # Install Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
@@ -16,6 +25,10 @@ RUN cd /var/www/html/extensions && \
 # Install MsUpload extension for multiple file uploads
 RUN cd /var/www/html/extensions && \
     git clone https://github.com/wikimedia/mediawiki-extensions-MsUpload.git MsUpload
+
+# Install Diagrams extension for diagram drawing functionality
+RUN cd /var/www/html/extensions && \
+    git clone https://github.com/samwilson/diagrams-extension.git Diagrams
 
 # Install dependencies using composer
 RUN cd /var/www/html/extensions/WikiMarkdown && \
@@ -44,7 +57,8 @@ RUN echo "upload_max_filesize = 500M" >> /usr/local/etc/php/conf.d/uploads.ini &
     echo "max_file_uploads = 20" >> /usr/local/etc/php/conf.d/uploads.ini
 
 # Set proper permissions
-RUN chown -R www-data:www-data /var/www/html/extensions/WikiMarkdown
+RUN chown -R www-data:www-data /var/www/html/extensions/WikiMarkdown && \
+    chown -R www-data:www-data /var/www/html/extensions/Diagrams
 
 # Expose port 80
 EXPOSE 80
