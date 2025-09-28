@@ -21,6 +21,14 @@ RUN cd /var/www/html/extensions/WikiMarkdown && \
 RUN sed -i 's/public static function onContentHandlerDefaultModelFor( Title \$title, &\$model )/public static function onContentHandlerDefaultModelFor( $title, \&$model )/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
     sed -i 's/public static function onCodeEditorGetPageLanguage( Title \$title, &\$languageCode )/public static function onCodeEditorGetPageLanguage( $title, \&$languageCode )/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i '2i\\nrequire_once __DIR__ . "/../vendor/autoload.php";' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i '3i\use MediaWiki\\Linker\\Linker;' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i '4i\use MediaWiki\\Html\\Html;' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/return Linker::makeHeadline.*$/return "<h{$matches[1]} id=\"{$anchor}\">{$matches[4]}<\/h{$matches[1]}>";/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
 
 # Set proper permissions
