@@ -84,6 +84,10 @@ $wgEnableUploads = true;
 $wgUseImageMagick = true;
 $wgImageMagickConvertCommand = "/usr/bin/convert";
 
+# Set maximum upload file size to 500MB
+$wgMaxUploadSize = 500 * 1024 * 1024; // 500MB in bytes
+$wgUploadSizeWarning = 450 * 1024 * 1024; // Warning at 450MB
+
 # InstantCommons allows wiki to use images from https://commons.wikimedia.org
 $wgUseInstantCommons = true;
 

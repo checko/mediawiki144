@@ -31,6 +31,14 @@ RUN sed -i 's/public static function onContentHandlerDefaultModelFor( Title \$ti
     sed -i 's/return Linker::makeHeadline.*$/return "<h{$matches[1]} id=\"{$anchor}\">{$matches[4]}<\/h{$matches[1]}>";/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
 
+# Configure PHP for large file uploads (500MB)
+RUN echo "upload_max_filesize = 500M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "post_max_size = 500M" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "memory_limit = 1G" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_execution_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_input_time = 300" >> /usr/local/etc/php/conf.d/uploads.ini && \
+    echo "max_file_uploads = 20" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Set proper permissions
 RUN chown -R www-data:www-data /var/www/html/extensions/WikiMarkdown
 
