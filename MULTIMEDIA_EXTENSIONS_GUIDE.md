@@ -31,7 +31,15 @@ The MediaWiki installation includes three main multimedia extensions that provid
 ```
 
 ### Configuration
-No additional configuration required - works out of the box with MediaWiki 1.44.
+```php
+# PdfHandler extension configuration in LocalSettings.php
+$wgPdfProcessor = '/usr/bin/gs';           # Ghostscript path
+$wgPdfPostProcessor = '/usr/bin/convert';  # ImageMagick path
+$wgPdfInfo = '/usr/bin/pdfinfo';          # PDF info extraction
+$wgPdftoText = '/usr/bin/pdftotext';      # PDF text extraction
+```
+
+**Note**: PDF thumbnail generation requires system dependencies (Ghostscript and Poppler tools) to be installed.
 
 ## Video & Audio Support - EmbedVideo Extension
 
@@ -158,12 +166,18 @@ Works automatically - no additional configuration required.
 # FFmpeg for video/audio processing
 ffmpeg
 
+# PDF processing tools (CRITICAL for PDF previews)
+ghostscript     # PDF to image conversion for thumbnails - required for PdfHandler
+poppler-utils   # PDF metadata extraction (pdfinfo, pdftotext) - required for PdfHandler
+
 # Already installed for diagrams:
 graphviz        # For diagram rendering
 mscgen          # For message sequence charts
 default-jre     # Java runtime for PlantUML
 plantuml        # UML diagram generation
 ```
+
+**Important**: PDF preview functionality requires both `ghostscript` and `poppler-utils` to be installed in the system. Without these packages, PDF files will not generate thumbnails or previews.
 
 ### PHP Configuration
 ```ini

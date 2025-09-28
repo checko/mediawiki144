@@ -239,6 +239,12 @@ $wgEmbedVideoEnableVideoHandler = true;
 $wgEmbedVideoEnableAudioHandler = true;
 $wgFFmpegLocation = '/usr/bin/ffmpeg';
 
+# PdfHandler extension configuration
+$wgPdfProcessor = '/usr/bin/gs';
+$wgPdfPostProcessor = '/usr/bin/convert';
+$wgPdfInfo = '/usr/bin/pdfinfo';
+$wgPdftoText = '/usr/bin/pdftotext';
+
 # Enable detailed error reporting for debugging
 $wgShowExceptionDetails = true;
 
