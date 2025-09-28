@@ -17,8 +17,10 @@ RUN cd /var/www/html/extensions && \
 RUN cd /var/www/html/extensions/WikiMarkdown && \
     composer install --no-dev --ignore-platform-reqs
 
-# Fix MediaWiki 1.44 compatibility issue in WikiMarkdown extension
+# Fix MediaWiki 1.44 compatibility issues in WikiMarkdown extension
 RUN sed -i 's/public static function onContentHandlerDefaultModelFor( Title \$title, &\$model )/public static function onContentHandlerDefaultModelFor( $title, \&$model )/' \
+    /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php && \
+    sed -i 's/public static function onCodeEditorGetPageLanguage( Title \$title, &\$languageCode )/public static function onCodeEditorGetPageLanguage( $title, \&$languageCode )/' \
     /var/www/html/extensions/WikiMarkdown/includes/WikiMarkdown.php
 
 # Set proper permissions

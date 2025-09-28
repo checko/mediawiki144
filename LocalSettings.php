@@ -160,6 +160,20 @@ wfLoadExtension( 'WikiMarkdown' );
 $wgAllowMarkdownExtra = true; // allows usage of Parsedown Extra
 $wgAllowMarkdownExtended = true; // allows usage of Parsedown Extended
 
-# Disable detailed error reporting for production
-# $wgShowExceptionDetails = true;
+# VisualEditor configuration
+$wgDefaultUserOptions['visualeditor-enable'] = 1;
+$wgDefaultUserOptions['visualeditor-editor'] = "visualeditor";
+$wgVisualEditorAvailableNamespaces = [
+    NS_MAIN => true,
+    NS_USER => true,
+    NS_PROJECT => true,
+    NS_HELP => true,
+    NS_CATEGORY => true
+];
+# Use built-in Parsoid (MediaWiki 1.44 includes Parsoid)
+$wgVisualEditorRestbaseURL = false;
+$wgVisualEditorFullRestbaseURL = false;
+
+# Enable detailed error reporting for debugging
+$wgShowExceptionDetails = true;
 
