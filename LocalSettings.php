@@ -160,3 +160,6 @@ wfLoadExtension( 'WikiMarkdown' );
 $wgAllowMarkdownExtra = true; // allows usage of Parsedown Extra
 $wgAllowMarkdownExtended = true; // allows usage of Parsedown Extended
 
+# Disable detailed error reporting for production
+# $wgShowExceptionDetails = true;
+

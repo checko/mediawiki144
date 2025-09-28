@@ -1,0 +1,11 @@
+--- WikiMarkdown.php.original
++++ WikiMarkdown.php.fixed
+@@ -284,7 +284,7 @@
+ 	 * @param string &$model Model name. Use with CONTENT_MODEL_XXX constants.
+ 	 * @return bool|void True or no return value to continue or false to abort
+ 	 */
+-	public static function onContentHandlerDefaultModelFor( Title $title, &$model ) {
++	public static function onContentHandlerDefaultModelFor( $title, &$model ) {
+ 		// Match .md pages.
+ 		if ( preg_match( '/\.md$/i', $title->getText() ) && $title->isContentPage() ) {
+ 			$model = CONTENT_MODEL_MARKDOWN;
