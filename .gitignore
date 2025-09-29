@@ -1,0 +1,10 @@
+# Exclude cloned diagram extension folders
+diagrams-extension/
+diagrams-working/
+
+# Exclude backup files
+*.backup
+
+# Exclude temporary foreign resources files
+foreign-resources.cdx.json
+foreign-resources.yaml

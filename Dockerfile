@@ -29,9 +29,9 @@ RUN cd /var/www/html/extensions && \
 RUN cd /var/www/html/extensions && \
     git clone https://github.com/wikimedia/mediawiki-extensions-MsUpload.git MsUpload
 
-# Install Diagrams extension for diagram drawing functionality
+# Install Diagrams extension for diagram drawing functionality (MediaWiki 1.44 compatible version)
 RUN cd /var/www/html/extensions && \
-    git clone https://github.com/samwilson/diagrams-extension.git Diagrams
+    git clone -b mediawiki-1.44-compatible https://github.com/checko/diagrams-extension.git Diagrams
 
 # Install EmbedVideo extension for video/audio embedding
 RUN cd /var/www/html/extensions && \

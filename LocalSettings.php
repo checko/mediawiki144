@@ -32,7 +32,7 @@ $wgMetaNamespace = "Royaltek_Wiki";
 $wgScriptPath = "";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "http://192.168.145.166:8050";
+$wgServer = "http://192.168.147.182:8050";
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -144,14 +144,14 @@ $wgLocaltimezone = "UTC";
 ## be publicly accessible from the web.
 #$wgCacheDirectory = "$IP/cache";
 
-$wgSecretKey = "0b849211a4eccaf24cc4dd15e0c39e3ecf7c9c5422d2496b5e3114177440c968";
+$wgSecretKey = "0bc3f0596a4edc46fb0829581f083467bacbcfbd37c2f7a52259f1c5d67179fc";
 
 # Changing this will log out all existing sessions.
 $wgAuthenticationTokenVersion = "1";
 
 # Site upgrade key. Must be set to a string (default provided) to turn on the
 # web installer while LocalSettings.php is in place
-$wgUpgradeKey = "cfb915fc5862d6e0";
+$wgUpgradeKey = "d38869dd27867507";
 
 ## For attaching licensing metadata to pages, and displaying an
 ## appropriate copyright notice / icon. GNU Free Documentation
@@ -180,6 +180,7 @@ wfLoadSkin( 'Vector' );
 # wfLoadExtension( 'ExtensionName' );
 # to LocalSettings.php. Check specific extension documentation for more details.
 # The following extensions were automatically enabled:
+wfLoadExtension( 'WikiEditor' ); # Required for CodeEditor
 wfLoadExtension( 'CodeEditor' );
 wfLoadExtension( 'InputBox' );
 wfLoadExtension( 'Interwiki' );
@@ -190,7 +191,6 @@ wfLoadExtension( 'PdfHandler' );
 wfLoadExtension( 'ReplaceText' );
 wfLoadExtension( 'SyntaxHighlight_GeSHi' );
 wfLoadExtension( 'VisualEditor' );
-wfLoadExtension( 'WikiEditor' );
 wfLoadExtension( 'WikiMarkdown' );
 wfLoadExtension( 'Diagrams' );
 wfLoadExtension( 'EmbedVideo' );
