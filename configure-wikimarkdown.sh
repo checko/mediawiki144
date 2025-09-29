@@ -3,7 +3,7 @@
 # Script to configure WikiMarkdown extension in MediaWiki
 # Run this after MediaWiki installation is complete
 
-LOCALSETTINGS_FILE="/var/www/html/LocalSettings.php"
+LOCALSETTINGS_FILE="./LocalSettings.php"
 
 # Check if LocalSettings.php exists
 if [ ! -f "$LOCALSETTINGS_FILE" ]; then

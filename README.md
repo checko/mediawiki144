@@ -19,16 +19,12 @@ This setup provides MediaWiki 1.44 with the WikiMarkdown extension using Docker 
      - Database username: mediawiki
      - Database password: mediawiki_password
 
-3. **Download LocalSettings.php:**
+3. **Download and configure LocalSettings.php:**
    - At the end of the installation, download the generated `LocalSettings.php`
-   - Copy it to the container: `docker cp LocalSettings.php mediawiki144claude-mediawiki-1:/var/www/html/`
+   - Run the configuration script: `./configure-wikimarkdown.sh`
+   - Copy the configured file to the container: `docker cp LocalSettings.php mediawiki144claude-mediawiki-1:/var/www/html/`
 
-4. **Configure WikiMarkdown extension:**
-   ```bash
-   docker exec mediawiki144claude-mediawiki-1 /configure-wikimarkdown.sh
-   ```
-
-5. **Restart the MediaWiki container:**
+4. **Restart the MediaWiki container:**
    ```bash
    docker-compose restart mediawiki
    ```
