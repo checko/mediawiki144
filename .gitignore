@@ -8,3 +8,11 @@ diagrams-working/
 # Exclude temporary foreign resources files
 foreign-resources.cdx.json
 foreign-resources.yaml
+
+# Exclude generated/deployed configuration files
+LocalSettings.php.deployed
+LocalSettings.php.tmp
+*.tmp
+
+# Exclude user's custom environment configuration
+.env

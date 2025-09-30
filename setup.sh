@@ -90,9 +90,17 @@ echo -e "${YELLOW}Step 3: Applying custom configuration...${NC}"
 
 # Copy our pre-configured LocalSettings.php
 if [ -f "LocalSettings.php" ]; then
-    echo "  - Updating LocalSettings.php with server configuration..."
-    # Create a temporary file with updated server configuration
-    sed "s|\$wgServer = \"http://[^\"]*\"|\$wgServer = \"http://$HOST_IP:$HOST_PORT\"|g" LocalSettings.php > LocalSettings.php.tmp
+    echo "  - Updating LocalSettings.php with configuration from .env..."
+
+    # Create meta namespace from wiki name (replace spaces with underscores)
+    META_NAMESPACE=$(echo "$WIKI_NAME" | sed 's/ /_/g')
+
+    # Update LocalSettings.php with all configuration values from .env
+    sed -e "s|\$wgServer = \"http://[^\"]*\"|\$wgServer = \"http://$HOST_IP:$HOST_PORT\"|g" \
+        -e "s|\$wgSitename = \"[^\"]*\"|\$wgSitename = \"$WIKI_NAME\"|g" \
+        -e "s|\$wgMetaNamespace = \"[^\"]*\"|\$wgMetaNamespace = \"$META_NAMESPACE\"|g" \
+        -e "s|\$wgLanguageCode = \"[^\"]*\"|\$wgLanguageCode = \"$WIKI_LANG\"|g" \
+        LocalSettings.php > LocalSettings.php.tmp
 
     echo "  - Copying custom LocalSettings.php..."
     docker cp LocalSettings.php.tmp mediawiki144-mediawiki-1:/var/www/html/LocalSettings.php
@@ -112,6 +120,11 @@ docker compose restart mediawiki
 # Wait for restart
 sleep 5
 
+# Step 5: Copy deployed configuration for user review
+echo -e "${YELLOW}Step 5: Copying deployed configuration...${NC}"
+docker cp mediawiki144-mediawiki-1:/var/www/html/LocalSettings.php LocalSettings.php.deployed
+echo -e "${GREEN}✓ Deployed configuration saved to LocalSettings.php.deployed${NC}"
+
 echo -e "${GREEN}🎉 MediaWiki 1.44 setup completed successfully!${NC}"
 echo ""
 echo -e "${BLUE}Access your wiki at: http://$HOST_IP:$HOST_PORT${NC}"
@@ -119,6 +132,10 @@ echo ""
 echo -e "${BLUE}Login credentials:${NC}"
 echo "  Username: $ADMIN_USER"
 echo "  Password: $ADMIN_PASS"
+echo ""
+echo -e "${BLUE}Configuration:${NC}"
+echo "  ✓ Deployed settings saved to: LocalSettings.php.deployed"
+echo "  ✓ Review this file to verify your configuration"
 echo ""
 echo -e "${BLUE}Available extensions:${NC}"
 echo "  ✓ WikiMarkdown - Use Markdown syntax"
