@@ -22,6 +22,10 @@ cp .env.example .env
 ./setup.sh
 ```
 
+The setup script automatically updates all configuration files including:
+- `docker-compose.yml` - Uses `HOST_IP` and `HOST_PORT` from .env
+- `LocalSettings.php` - Automatically updated with your server URL during setup
+
 👉 **See [SIMPLE_SETUP.md](SIMPLE_SETUP.md) for details and customization options.**
 
 ## Manual Setup (Advanced Users)

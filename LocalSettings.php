@@ -21,8 +21,8 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 ## Uncomment this to disable output compression
 # $wgDisableOutputCompression = true;
 
-$wgSitename = "Royaltek Wiki";
-$wgMetaNamespace = "Royaltek_Wiki";
+$wgSitename = "My Wiki";
+$wgMetaNamespace = "My_Wiki";
 
 ## The URL base path to the directory containing the wiki;
 ## defaults for all runtime URL paths are based off of this.
@@ -32,7 +32,7 @@ $wgMetaNamespace = "Royaltek_Wiki";
 $wgScriptPath = "";
 
 ## The protocol and server name to use in fully-qualified URLs
-$wgServer = "http://192.168.147.182:8050";
+$wgServer = "http://localhost:8050";
 
 ## The URL path to static resources (images, scripts, etc.)
 $wgResourceBasePath = $wgScriptPath;
@@ -134,7 +134,7 @@ $wgUseInstantCommons = true;
 $wgPingback = true;
 
 # Site language code, should be one of the list in ./includes/languages/data/Names.php
-$wgLanguageCode = "zh-tw";
+$wgLanguageCode = "en";
 
 # Time zone
 $wgLocaltimezone = "UTC";

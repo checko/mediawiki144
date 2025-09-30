@@ -90,8 +90,16 @@ echo -e "${YELLOW}Step 3: Applying custom configuration...${NC}"
 
 # Copy our pre-configured LocalSettings.php
 if [ -f "LocalSettings.php" ]; then
+    echo "  - Updating LocalSettings.php with server configuration..."
+    # Create a temporary file with updated server configuration
+    sed "s|\$wgServer = \"http://[^\"]*\"|\$wgServer = \"http://$HOST_IP:$HOST_PORT\"|g" LocalSettings.php > LocalSettings.php.tmp
+
     echo "  - Copying custom LocalSettings.php..."
-    docker cp LocalSettings.php mediawiki144-mediawiki-1:/var/www/html/LocalSettings.php
+    docker cp LocalSettings.php.tmp mediawiki144-mediawiki-1:/var/www/html/LocalSettings.php
+
+    # Clean up temporary file
+    rm LocalSettings.php.tmp
+
     echo -e "${GREEN}✓ Custom configuration applied${NC}"
 else
     echo -e "${YELLOW}⚠ No LocalSettings.php found, using default configuration${NC}"
