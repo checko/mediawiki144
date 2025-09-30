@@ -2,7 +2,7 @@ services:
   mediawiki:
     build: .
     ports:
-      - "192.168.147.182:8050:80"
+      - "${HOST_IP:-localhost}:${HOST_PORT:-8050}:80"
     volumes:
       - mediawiki_data:/var/www/html
     depends_on:

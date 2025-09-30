@@ -10,7 +10,7 @@ This setup provides MediaWiki 1.44 with comprehensive extensions including WikiM
 ./setup.sh
 ```
 
-**That's it!** Your MediaWiki will be ready at http://192.168.147.182:8050 with admin/AdminPassword123!
+**That's it!** Your MediaWiki will be ready at http://localhost:8050 with admin/AdminPassword123!
 
 ### Customization (Optional)
 
@@ -37,7 +37,7 @@ cp .env.example .env
    ```
 
 2. **Access MediaWiki setup:**
-   - Open your browser and go to `http://192.168.145.166:8050`
+   - Open your browser and go to `http://localhost:8050`
    - Follow the MediaWiki installation wizard
    - Use these database settings:
      - Database type: MySQL
