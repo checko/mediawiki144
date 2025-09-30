@@ -10,7 +10,17 @@ This setup provides MediaWiki 1.44 with comprehensive extensions including WikiM
 ./setup.sh
 ```
 
-**That's it!** Your MediaWiki will be ready at http://localhost:8050 with admin/AdminPassword123!
+**That's it!** Your MediaWiki will be ready at http://192.168.147.182:8050 with admin/AdminPassword123!
+
+### Customization (Optional)
+
+To customize wiki name, language, admin credentials, or server settings:
+
+```bash
+cp .env.example .env
+# Edit .env with your preferred values
+./setup.sh
+```
 
 👉 **See [SIMPLE_SETUP.md](SIMPLE_SETUP.md) for details and customization options.**
 

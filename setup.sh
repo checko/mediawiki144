@@ -14,7 +14,15 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Default values (can be overridden with environment variables)
+# Load .env file if it exists
+if [ -f .env ]; then
+    echo -e "${BLUE}Loading configuration from .env file...${NC}"
+    set -a  # automatically export all variables
+    source .env
+    set +a
+fi
+
+# Default values (can be overridden with environment variables or .env file)
 WIKI_NAME="${WIKI_NAME:-My Wiki}"
 ADMIN_USER="${ADMIN_USER:-admin}"
 ADMIN_PASS="${ADMIN_PASS:-AdminPassword123!}"
