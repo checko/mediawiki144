@@ -32,7 +32,7 @@ def normalize_escaped_unicode(name):
             return match.group(0)
     return pattern.sub(repl, name)
 
-def extract_zip_with_encoding(zip_path, extract_to, encoding='cp950'):
+def extract_zip_with_encoding(zip_path, extract_to, encoding='utf-8'):
     """Extract ZIP handling Chinese filenames"""
     extract_to = Path(extract_to)
     extract_to.mkdir(parents=True, exist_ok=True)
@@ -44,9 +44,19 @@ def extract_zip_with_encoding(zip_path, extract_to, encoding='cp950'):
         for member in zf.namelist():
             # Try to decode filename
             try:
-                # Get raw bytes of filename
-                filename_bytes = member.encode('cp437')
-                decoded_name, used_enc = detect_encoding(filename_bytes)
+                # Modern ZIPs use UTF-8, try that first
+                decoded_name = member
+                used_enc = 'utf-8'
+
+                # If the filename looks like mojibake, try re-encoding
+                if decoded_name != member:
+                    try:
+                        filename_bytes = member.encode('cp437')
+                        decoded_name, used_enc = detect_encoding(filename_bytes)
+                    except:
+                        decoded_name = member
+                        used_enc = 'utf-8'
+
                 decoded_name = normalize_escaped_unicode(decoded_name)
 
                 # Create full path
