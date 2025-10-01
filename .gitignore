@@ -16,3 +16,12 @@ LocalSettings.php.tmp
 
 # Exclude user's custom environment configuration
 .env
+
+# Exclude data files (too large for git)
+data/wikidb.sql
+data/images.zip
+data/*.log
+data/backups/
+
+# Exclude extracted images
+images/
