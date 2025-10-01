@@ -172,7 +172,7 @@ log ""
 docker compose stop mediawiki
 
 # Get network name
-NETWORK=$(docker network ls --format '{{.Name}}' | grep mediawiki144claude)
+NETWORK=$(docker network ls --format '{{.Name}}' | grep mediawiki144)
 
 if [ -z "$NETWORK" ]; then
     log "${RED}Error: Docker network not found${NC}"
@@ -249,6 +249,9 @@ if [ "$RESTORE_IMAGES" = true ]; then
         log "  Rebuilding image metadata..."
         docker compose exec mediawiki php maintenance/refreshImageMetadata.php --force 2>&1 | tee -a "$LOG_FILE"
         docker compose exec mediawiki php maintenance/rebuildImages.php --missing 2>&1 | tee -a "$LOG_FILE"
+
+        log "  Fixing Chinese filename issues..."
+        bash scripts/fix-chinese-image-names.sh 2>&1 | tee -a "$LOG_FILE"
 
         # Cleanup
         rm -rf "$TEMP_IMAGES"

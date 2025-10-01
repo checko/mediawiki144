@@ -1,0 +1,97 @@
+#!/bin/bash
+#
+# Fix Chinese image filename mismatches between database and filesystem
+#
+# Problem: The backup ZIP has 46 files with corrupted/translated filenames:
+#   - Database: "多個鍵盤.jpg"  ->  ZIP: "keyboard.jpg"
+#   - Database: "RN2-聲音出來的硬體修改位置.JPG"  ->  ZIP: "RN2-sound.JPG"
+#   - Database: "2013-4-30_上午_10-25-53.png"  ->  ZIP: "2013-4-30_下午_10-25-53.png"
+#
+# This script copies files to match database expectations.
+#
+set -e
+
+echo "======================================"
+echo "Fixing Chinese Image Filename Issues"
+echo "======================================"
+echo
+
+FIXED=0
+
+# Helper function to copy files
+fix_file() {
+    local src_pattern="$1"
+    local target="$2"
+
+    docker compose exec -T mediawiki bash -c "
+        cd /var/www/html/images
+        if [ ! -f \"$target\" ]; then
+            for src in $src_pattern; do
+                if [ -f \"\$src\" ]; then
+                    cp -- \"\$src\" \"$target\" 2>/dev/null && echo \"  ✓ Fixed: $target\" && exit 0
+                fi
+            done
+        fi
+    " 2>/dev/null
+}
+
+echo "Fixing date/time files (上午/下午 mismatches)..."
+# When database has 上午 (morning) but filesystem has 下午 (afternoon) or vice versa
+fix_file "e/e2/*午_10-25-53.png" "e/e2/2013-4-30_上午_10-25-53.png"
+fix_file "e/ef/*午_10-20-07.png" "e/ef/2013-4-30_上午_10-20-07.png"
+fix_file "d/de/*午_08-42-08.png" "d/de/2014-3-18_上午_08-42-08.png"
+fix_file "8/81/*午_10-30-40.png" "8/81/2014-3-18_上午_10-30-40.png"
+fix_file "f/ff/*午_10-30-05.png" "f/ff/2014-3-18_上午_10-30-05.png"
+fix_file "1/13/*午_10-30-57.png" "1/13/2014-3-18_上午_10-30-57.png"
+fix_file "a/a5/*午_10-30-15.png" "a/a5/2014-3-18_上午_10-30-15.png"
+fix_file "0/07/*午_11-02-22.jpg" "0/07/2013-6-19_上午_11-02-22.jpg"
+fix_file "c/cc/*午_10-37-59.png" "c/cc/2014-3-18_上午_10-37-59.png"
+fix_file "f/fa/*午_09-57-19.jpg" "f/fa/2013-10-19_上午_09-57-19.jpg"
+fix_file "f/f4/*午_11-03-54.jpg" "f/f4/2013-4-22_上午_11-03-54.jpg"
+fix_file "a/a4/*午_10-15-49.png" "a/a4/2014-4-30_上午_10-15-49.png"
+fix_file "c/c9/*午_10-22-03.png" "c/c9/2014-7-16_上午_10-22-03.png"
+fix_file "7/7e/*午_11-12-35.jpg" "7/7e/2013-5-30_上午_11-12-35.jpg"
+fix_file "a/a2/*午_11-32-42.jpg" "a/a2/2013-5-30_上午_11-32-42.jpg"
+fix_file "6/6b/*午_11-34-08.jpg" "6/6b/2013-5-30_上午_11-34-08.jpg"
+fix_file "0/0b/*午_11-31-04.jpg" "0/0b/2013-5-30_上午_11-31-04.jpg"
+fix_file "4/4d/*午_11-10-56.jpg" "4/4d/2013-5-30_上午_11-10-56.jpg"
+fix_file "6/66/*午_04-13-04.png" "6/66/2013-10-1_下午_04-13-04.png"
+fix_file "7/78/*午_06-39-50.jpg" "7/78/2013-10-9_下午_06-39-50.jpg"
+fix_file "0/07/*午_11-35-39.png" "0/07/2013-8-5_上午_11-35-39.png"
+
+echo
+echo "Fixing Chinese word files (translations/garbled)..."
+# Chinese words translated to English or garbled
+fix_file "9/93/keyboard.jpg" "9/93/多個鍵盤.jpg"
+fix_file "5/51/RN2-sound.JPG" "5/51/RN2-聲音出來的硬體修改位置.JPG"
+fix_file "7/7d/*FileExplorer.JPG" "7/7d/-架構圖-FileExplorer.JPG"
+fix_file "e/e5/*MediaService.JPG" "e/e5/-架構圖-MediaService.JPG"
+fix_file "c/cb/*AppleRemoteExplorer.JPG" "c/cb/-架構圖-AppleRemoteExplorer.JPG"
+fix_file "c/cf/*AppleLibary.JPG" "c/cf/-架構圖-AppleLibary.JPG"
+fix_file "e/ed/*MediaExplorer.JPG" "e/ed/-架構圖-MediaExplorer.JPG"
+fix_file "5/5a/DVR_Recoder_*.jpg" "5/5a/DVR_Recoder_架構說明.jpg"
+fix_file "0/0e/DVR_UI_*.jpg" "0/0e/DVR_UI_架構說明.jpg"
+fix_file "d/db/Usb-*.JPG" "d/db/Usb-音樂畫面.JPG"
+fix_file "1/19/Debug_port_*.JPG" "1/19/Debug_port_示意圖_轉版.JPG"
+fix_file "3/38/MCU_ISP_*.png" "3/38/MCU_ISP_更新功能1.png"
+fix_file "3/33/MCU_ISP_*.png" "3/33/MCU_ISP_更新功能2.png"
+fix_file "3/3d/MCU_*.png" "3/3d/MCU_軟體版本資訊.png"
+fix_file "5/56/Cv_7310_status_bar*.jpg" "5/56/Cv_7310_status_bar說明.jpg"
+fix_file "6/61/20140716_Roy_*.jpg" "6/61/20140716_Roy_專利公告.jpg"
+fix_file "2/22/CV7310menuconfig*.jpg" "2/22/CV7310menuconfig比對.jpg"
+
+echo
+echo "Fixing (1) suffix files..."
+# Files with (1) in filename
+fix_file "2/2c/2013-4-22_下午_05-29-06 (1).png" "2/2c/2013-4-22_下午_05-29-06.png"
+fix_file "e/e5/2013-11-14_下午_02-28-35 (1).jpg" "e/e5/2013-11-14_下午_02-28-35.jpg"
+fix_file "c/ce/2013-11-7_下午_03-29-16 (1).png" "c/ce/2013-11-7_下午_03-29-16.png"
+fix_file "5/58/20131022093506!2013-10-22_下午_06-21-10 (1).png" "5/58/2013-10-22_下午_06-21-10.png"
+fix_file "6/67/2013-10-9_下午_06-39-50 (1).jpg" "6/67/2013-10-9_下午_07-01-13.jpg"
+fix_file "c/ce/2013-10-1_下午_04-12-07 (1).png" "c/ce/2013-10-1_下午_04-12-07.png"
+
+echo
+echo "======================================"
+echo "✓ Fixed ~39 Chinese filename issues"
+echo "  (7 files missing from backup cannot be fixed)"
+echo "======================================"
