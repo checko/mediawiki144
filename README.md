@@ -94,3 +94,31 @@ Create professional diagrams using text-based syntax:
 - **PlantUML** - UML diagrams, sequence diagrams, use cases
 - **Mscgen** - Message sequence charts
 - Built with MediaWiki 1.44 compatibility fixes
+
+## 🔄 Updating Extensions to Latest Version
+
+### Root Cause: Docker Build Cache
+Extensions (WikiMarkdown, Diagrams) are cloned from GitHub **during Docker image build** (Dockerfile lines 24-34). Docker's build layer caching means that even after `docker compose down -v --rmi all`, the `git clone` commands may use cached results from previous builds, leaving you with outdated extension code.
+
+**Key Point:** `-v` removes volumes, `--rmi all` removes images, but **build cache persists separately**.
+
+### Solution Options:
+
+**Option 1: Clear build cache then rebuild (Recommended)**
+```bash
+docker compose down -v --rmi all
+docker builder prune -a -f
+docker compose build
+docker compose up -d
+./setup.sh
+```
+
+**Option 2: Force rebuild without using cache**
+```bash
+docker compose down -v --rmi all
+docker compose build --no-cache
+docker compose up -d
+./setup.sh
+```
+
+Both options ensure you get the latest extension code from GitHub. Option 1 clears all build cache first, Option 2 bypasses cache for this specific build.
