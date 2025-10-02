@@ -250,10 +250,7 @@ if [ "$RESTORE_IMAGES" = true ]; then
         docker compose exec mediawiki php maintenance/refreshImageMetadata.php --force 2>&1 | tee -a "$LOG_FILE"
         docker compose exec mediawiki php maintenance/rebuildImages.php --missing 2>&1 | tee -a "$LOG_FILE"
 
-        log "  Fixing Chinese filename issues (pattern-based)..."
-        bash scripts/fix-chinese-image-names.sh 2>&1 | tee -a "$LOG_FILE"
-
-        log "  Fixing remaining missing images (dynamic search)..."
+        log "  Fixing missing images with dynamic pattern matching..."
         bash scripts/fix-missing-images-dynamic.sh 2>&1 | tee -a "$LOG_FILE"
 
         # Cleanup
