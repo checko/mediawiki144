@@ -108,6 +108,116 @@ docker compose exec -T mediawiki bash -c '
             echo "  ✓ Fixed: 藍芽畫面.JPG (by size)"
         fi
     fi
+
+    # 歌曲依照時間排列.JPG (107667 bytes) - translated to sound_serial.JPG
+    if [ ! -f "a/aa/歌曲依照時間排列.JPG" ]; then
+        SRC=$(find a/aa/ -type f -size 107667c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "a/aa/歌曲依照時間排列.JPG"
+            chown www-data:www-data "a/aa/歌曲依照時間排列.JPG"
+            chmod 644 "a/aa/歌曲依照時間排列.JPG"
+            echo "  ✓ Fixed: 歌曲依照時間排列.JPG (by size)"
+        fi
+    fi
+
+    # 太祖魷魚羹米粉.jpeg (105353 bytes) - severely garbled
+    if [ ! -f "7/72/太祖魷魚羹米粉.jpeg" ]; then
+        SRC=$(find 7/72/ -type f -size 105353c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "7/72/太祖魷魚羹米粉.jpeg"
+            chown www-data:www-data "7/72/太祖魷魚羹米粉.jpeg"
+            chmod 644 "7/72/太祖魷魚羹米粉.jpeg"
+            echo "  ✓ Fixed: 太祖魷魚羹米粉.jpeg (by size)"
+        fi
+    fi
+
+    # 華園牛肉湯麵.jpeg (33318 bytes) - severely garbled
+    if [ ! -f "a/a1/華園牛肉湯麵.jpeg" ]; then
+        SRC=$(find a/a1/ -type f -size 33318c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "a/a1/華園牛肉湯麵.jpeg"
+            chown www-data:www-data "a/a1/華園牛肉湯麵.jpeg"
+            chmod 644 "a/a1/華園牛肉湯麵.jpeg"
+            echo "  ✓ Fixed: 華園牛肉湯麵.jpeg (by size)"
+        fi
+    fi
+
+    # 2013-11-14_下午_02-34-35.jpg (52059 bytes) - wrong filename
+    if [ ! -f "f/f3/2013-11-14_下午_02-34-35.jpg" ]; then
+        SRC=$(find f/f3/ -type f -size 52059c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "f/f3/2013-11-14_下午_02-34-35.jpg"
+            chown www-data:www-data "f/f3/2013-11-14_下午_02-34-35.jpg"
+            chmod 644 "f/f3/2013-11-14_下午_02-34-35.jpg"
+            echo "  ✓ Fixed: 2013-11-14_下午_02-34-35.jpg (by size)"
+        fi
+    fi
+
+    # 2013-11-7_下午_03-29-43.png (27990 bytes) - wrong filename
+    if [ ! -f "b/b0/2013-11-7_下午_03-29-43.png" ]; then
+        SRC=$(find b/b0/ -type f -size 27990c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "b/b0/2013-11-7_下午_03-29-43.png"
+            chown www-data:www-data "b/b0/2013-11-7_下午_03-29-43.png"
+            chmod 644 "b/b0/2013-11-7_下午_03-29-43.png"
+            echo "  ✓ Fixed: 2013-11-7_下午_03-29-43.png (by size)"
+        fi
+    fi
+
+    # 2014-2-21_下午_05-09-32.png (15750 bytes) - timestamp prefix + wrong time
+    if [ ! -f "2/2d/2014-2-21_下午_05-09-32.png" ]; then
+        SRC=$(find 2/2d/ -type f -size 15750c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "2/2d/2014-2-21_下午_05-09-32.png"
+            chown www-data:www-data "2/2d/2014-2-21_下午_05-09-32.png"
+            chmod 644 "2/2d/2014-2-21_下午_05-09-32.png"
+            echo "  ✓ Fixed: 2014-2-21_下午_05-09-32.png (by size)"
+        fi
+    fi
+
+    # 2014-4-30_上午_10-18-36.png (59083 bytes) - completely different date/time
+    if [ ! -f "1/10/2014-4-30_上午_10-18-36.png" ]; then
+        SRC=$(find 1/10/ -type f -size 59083c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "1/10/2014-4-30_上午_10-18-36.png"
+            chown www-data:www-data "1/10/2014-4-30_上午_10-18-36.png"
+            chmod 644 "1/10/2014-4-30_上午_10-18-36.png"
+            echo "  ✓ Fixed: 2014-4-30_上午_10-18-36.png (by size)"
+        fi
+    fi
+
+    # 2014-4-8_下午_05-00-38.jpg (34997 bytes) - timestamp prefix + wrong time
+    if [ ! -f "c/c5/2014-4-8_下午_05-00-38.jpg" ]; then
+        SRC=$(find c/c5/ -type f -size 34997c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "c/c5/2014-4-8_下午_05-00-38.jpg"
+            chown www-data:www-data "c/c5/2014-4-8_下午_05-00-38.jpg"
+            chmod 644 "c/c5/2014-4-8_下午_05-00-38.jpg"
+            echo "  ✓ Fixed: 2014-4-8_下午_05-00-38.jpg (by size)"
+        fi
+    fi
+
+    # 2013-10-1_下午_04-13-04.png (137149 bytes) - different directory, wrong filename
+    if [ ! -f "6/66/2013-10-1_下午_04-13-04.png" ]; then
+        SRC=$(find 6/66/ -type f -size 137149c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "6/66/2013-10-1_下午_04-13-04.png"
+            chown www-data:www-data "6/66/2013-10-1_下午_04-13-04.png"
+            chmod 644 "6/66/2013-10-1_下午_04-13-04.png"
+            echo "  ✓ Fixed: 2013-10-1_下午_04-13-04.png (by size)"
+        fi
+    fi
+
+    # 2013-10-9_下午_06-39-50.jpg (147046 bytes) - wrong filename
+    if [ ! -f "7/78/2013-10-9_下午_06-39-50.jpg" ]; then
+        SRC=$(find 7/78/ -type f -size 147046c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "7/78/2013-10-9_下午_06-39-50.jpg"
+            chown www-data:www-data "7/78/2013-10-9_下午_06-39-50.jpg"
+            chmod 644 "7/78/2013-10-9_下午_06-39-50.jpg"
+            echo "  ✓ Fixed: 2013-10-9_下午_06-39-50.jpg (by size)"
+        fi
+    fi
 ' 2>/dev/null
 
 echo
