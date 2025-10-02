@@ -6,12 +6,16 @@ During the MediaWiki backup/restoration process, some Chinese-named image files 
 
 ### Examples of Affected Files:
 
-| Database Name (Correct) | Filesystem Name (Garbled) |
-|-------------------------|---------------------------|
-| RN2-聲音出來的硬體修改位置.JPG | RN2-sound.JPG |
-| -架構圖-FileExplorer.JPG | -_嗆___FileExplorer.JPG |
-| DVR_Recoder_架構說明.jpg | DVR_Recoder_嗆_隤芣_.jpg |
-| Usb-音樂畫面.JPG | Usb-_單__恍.JPG |
+| Database Name (Correct) | Filesystem Name (Garbled/Wrong) | Issue Type |
+|-------------------------|----------------------------------|------------|
+| RN2-聲音出來的硬體修改位置.JPG | RN2-sound.JPG | Translation |
+| -架構圖-FileExplorer.JPG | -_嗆___FileExplorer.JPG | Garbled |
+| DVR_Recoder_架構說明.jpg | DVR_Recoder_嗆_隤芣_.jpg | Garbled |
+| Usb-音樂畫面.JPG | Usb-_單__恍.JPG | Garbled |
+| 投影片1.JPG | _蔣__.JPG | Severely Garbled |
+| 藍芽畫面.JPG | __恍.JPG | Severely Garbled |
+| 2011-1-5_下午_03-17-02.jpg | 2011-1-5_PM_03-17-02.jpg | AM/PM vs 上午/下午 |
+| 2013-4-22_下午_05-29-06.png | 2013-4-22_下午_05-29-06 (1).png | Duplicate suffix |
 
 ## Solution
 
@@ -69,35 +73,47 @@ The script fixes these known problematic files:
 5. **其他 (other) files (1 file)**
    - `ALSA聲音大小聲介面.jpg`
 
-**Total: 39+ files fixed automatically**
+**Total: 44+ files fixed automatically**
 
 ## Coverage
 
-- **Original issue:** 46 Chinese-named files missing
-- **Automatically fixed:** 39 files
-- **Remaining:** 7 files (files genuinely missing from backup)
+- **Original issue:** 50+ Chinese-named files with issues
+- **Automatically fixed:** 44 files
+- **Remaining:** ~6 files (genuinely missing from backup)
 
 ### Categories Fixed
 
-1. **上午/下午 (morning/afternoon) mismatches:** ~25 files
+1. **上午/下午/AM/PM mismatches:** ~26 files
    - Database had "上午" but filesystem had "下午" or vice versa
-   - Likely caused by timezone conversion during backup
+   - Database had "下午" but filesystem had "PM" (or AM/上午)
+   - Likely caused by timezone conversion or locale changes during backup
 
 2. **Chinese-to-English translations:** ~14 files
    - Examples: "多個鍵盤" → "keyboard", "架構圖" → garbled characters
 
+3. **Severely garbled Chinese:** ~2 files
+   - Files where Chinese characters are completely unrecognizable
+   - Fixed by matching file size from database
+   - Examples: "投影片1.JPG" → "_蔣__.JPG", "藍芽畫面.JPG" → "__恍.JPG"
+
+4. **Duplicate (1) suffixes:** ~3 files
+   - Files extracted with " (1)" suffix
+   - Example: "2013-4-22_下午_05-29-06.png" → "2013-4-22_下午_05-29-06 (1).png"
+
 ### Known Limitations
 
-The following 7 files cannot be automatically fixed as they don't exist in the backup:
+The following ~6 files cannot be automatically fixed as they don't exist in the backup:
+- `2013-11-7_下午_03-29-43.png` (confirmed missing)
 - `2014-2-21_下午_05-09-32.png`
-- `2013-11-7_下午_03-29-43.png`
 - `2014-4-8_下午_05-00-38.jpg`
 - `2013-11-14_下午_02-34-35.jpg`
 - `2014-4-30_上午_10-18-36.png`
-- `2011-1-5_下午_03-17-02.jpg`
 - `2013-10-1_下午_04-13-04.png`
 
-These files were likely never included in the original backup or were deleted.
+**Note:** Some files previously thought to be missing were actually present but with different encodings:
+- `2011-1-5_下午_03-17-02.jpg` - Found as `2011-1-5_PM_03-17-02.jpg` ✓ FIXED
+
+These files were likely never included in the original backup or were deleted before backup.
 
 ## Technical Details
 

@@ -35,8 +35,10 @@ fix_file() {
     " 2>/dev/null
 }
 
-echo "Fixing date/time files (上午/下午 mismatches)..."
+echo "Fixing date/time files (上午/下午/AM/PM mismatches)..."
 # When database has 上午 (morning) but filesystem has 下午 (afternoon) or vice versa
+# Also handles AM/PM vs 上午/下午 conversions
+fix_file "9/92/*PM_03-17-02.jpg" "9/92/2011-1-5_下午_03-17-02.jpg"
 fix_file "e/e2/*午_10-25-53.png" "e/e2/2013-4-30_上午_10-25-53.png"
 fix_file "e/ef/*午_10-20-07.png" "e/ef/2013-4-30_上午_10-20-07.png"
 fix_file "d/de/*午_08-42-08.png" "d/de/2014-3-18_上午_08-42-08.png"
@@ -81,6 +83,34 @@ fix_file "6/61/20140716_Roy_*.jpg" "6/61/20140716_Roy_專利公告.jpg"
 fix_file "2/22/CV7310menuconfig*.jpg" "2/22/CV7310menuconfig比對.jpg"
 
 echo
+echo "Fixing severely garbled Chinese files (by size matching)..."
+# Some Chinese filenames are completely garbled and need to be matched by file size
+docker compose exec -T mediawiki bash -c '
+    cd /var/www/html/images
+    # 投影片1.JPG (72354 bytes) - may be garbled as _蔣__.JPG or similar
+    if [ ! -f "e/e8/投影片1.JPG" ]; then
+        SRC=$(find e/e8/ -type f -size 72354c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "e/e8/投影片1.JPG"
+            chown www-data:www-data "e/e8/投影片1.JPG"
+            chmod 644 "e/e8/投影片1.JPG"
+            echo "  ✓ Fixed: 投影片1.JPG (by size)"
+        fi
+    fi
+
+    # 藍芽畫面.JPG (452926 bytes) - may be garbled as __恍.JPG or similar
+    if [ ! -f "0/0e/藍芽畫面.JPG" ]; then
+        SRC=$(find 0/0e/ -type f -size 452926c 2>/dev/null | head -1)
+        if [ -n "$SRC" ]; then
+            cp "$SRC" "0/0e/藍芽畫面.JPG"
+            chown www-data:www-data "0/0e/藍芽畫面.JPG"
+            chmod 644 "0/0e/藍芽畫面.JPG"
+            echo "  ✓ Fixed: 藍芽畫面.JPG (by size)"
+        fi
+    fi
+' 2>/dev/null
+
+echo
 echo "Fixing (1) suffix files..."
 # Files with (1) in filename
 fix_file "2/2c/2013-4-22_下午_05-29-06 (1).png" "2/2c/2013-4-22_下午_05-29-06.png"
@@ -92,6 +122,12 @@ fix_file "c/ce/2013-10-1_下午_04-12-07 (1).png" "c/ce/2013-10-1_下午_04-12-0
 
 echo
 echo "======================================"
-echo "✓ Fixed ~39 Chinese filename issues"
-echo "  (7 files missing from backup cannot be fixed)"
+echo "✓ Fixed ~44 Chinese filename issues"
+echo "  Including:"
+echo "    - AM/PM ↔ 上午/下午 conversions"
+echo "    - Garbled Chinese characters"
+echo "    - (1) suffix duplicates"
+echo "    - Size-based matching for severely garbled files"
+echo ""
+echo "  Note: ~6 files genuinely missing from backup"
 echo "======================================"
