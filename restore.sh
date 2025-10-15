@@ -150,17 +150,32 @@ docker compose exec mysql mysql -u root -proot_password -e "
 " 2>/dev/null
 
 log "  Importing SQL dump (this may take a while)..."
-docker compose exec -T mysql mysql \
+if docker compose exec -T mysql mysql \
     -u root -proot_password \
-    mediawiki < "$DB_DUMP" 2>/dev/null
+    mediawiki < "$DB_DUMP" 2>/dev/null; then
 
-# Verify import
-PAGE_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM page;" 2>/dev/null | tr -d '\r')
-REVISION_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM revision;" 2>/dev/null | tr -d '\r')
+    # Verify import
+    PAGE_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM page;" 2>/dev/null | tr -d '\r')
+    REVISION_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM revision;" 2>/dev/null | tr -d '\r')
 
-log "${GREEN}✓ Database imported successfully${NC}"
-log "  Pages: $PAGE_COUNT"
-log "  Revisions: $REVISION_COUNT"
+    log "${GREEN}✓ Database imported successfully${NC}"
+    log "  Pages: $PAGE_COUNT"
+    log "  Revisions: $REVISION_COUNT"
+else
+    log ""
+    log "${RED}✗ Failed to import database${NC}"
+    log "${RED}Error: SQL import failed${NC}"
+    log ""
+    log "${YELLOW}Possible causes:${NC}"
+    log "${YELLOW}  1. Corrupted SQL dump file${NC}"
+    log "${YELLOW}  2. SQL syntax incompatibility${NC}"
+    log "${YELLOW}  3. Insufficient MySQL resources${NC}"
+    log "${YELLOW}  4. Character encoding issues${NC}"
+    log ""
+    log "${YELLOW}Check the database dump file: $DB_DUMP${NC}"
+    log ""
+    exit 1
+fi
 log ""
 
 # Step 4: Upgrade to MediaWiki 1.35 (Intermediate)
@@ -180,13 +195,29 @@ if [ -z "$NETWORK" ]; then
 fi
 
 log "  Running MediaWiki 1.35 updater..."
-docker run --rm \
+if docker run --rm \
     --network "$NETWORK" \
     -v "$PWD/data/LocalSettings.minimal.php:/var/www/html/LocalSettings.php:ro" \
     mediawiki:1.35 \
-    php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"
-
-log "${GREEN}✓ Database upgraded to MediaWiki 1.35 schema${NC}"
+    php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"; then
+    log "${GREEN}✓ Database upgraded to MediaWiki 1.35 schema${NC}"
+else
+    log ""
+    log "${RED}✗ Failed to upgrade to MediaWiki 1.35${NC}"
+    log "${RED}Error: Could not run MediaWiki 1.35 updater${NC}"
+    log ""
+    log "${YELLOW}This is usually caused by:${NC}"
+    log "${YELLOW}  1. Network issues preventing Docker image download${NC}"
+    log "${YELLOW}  2. Missing mediawiki:1.35 Docker image${NC}"
+    log ""
+    log "${YELLOW}To fix this issue:${NC}"
+    log "${YELLOW}  1. Try manually pulling the image: docker pull mediawiki:1.35${NC}"
+    log "${YELLOW}  2. Check your internet connection to Docker Hub${NC}"
+    log "${YELLOW}  3. If behind a firewall, configure Docker registry mirror${NC}"
+    log "${YELLOW}  4. Re-run this script after the image is available${NC}"
+    log ""
+    exit 1
+fi
 log ""
 
 # Step 5: Upgrade to MediaWiki 1.44 (Final)
@@ -211,9 +242,22 @@ docker compose start mediawiki
 sleep 5
 
 log "  Running MediaWiki 1.44 updater with all extensions..."
-docker compose exec mediawiki php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"
-
-log "${GREEN}✓ Database upgraded to MediaWiki 1.44${NC}"
+if docker compose exec mediawiki php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"; then
+    log "${GREEN}✓ Database upgraded to MediaWiki 1.44${NC}"
+else
+    log ""
+    log "${RED}✗ Failed to upgrade to MediaWiki 1.44${NC}"
+    log "${RED}Error: MediaWiki 1.44 update script failed${NC}"
+    log ""
+    log "${YELLOW}Possible causes:${NC}"
+    log "${YELLOW}  1. Database schema incompatibility${NC}"
+    log "${YELLOW}  2. Extension configuration error${NC}"
+    log "${YELLOW}  3. Permission issues${NC}"
+    log ""
+    log "${YELLOW}Check the log file for details: $LOG_FILE${NC}"
+    log ""
+    exit 1
+fi
 log ""
 
 # Step 6: Restore images
