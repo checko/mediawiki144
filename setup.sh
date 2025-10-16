@@ -44,7 +44,7 @@ docker compose up -d
 
 # Wait for containers to be ready
 echo -e "${YELLOW}Waiting for containers to be ready...${NC}"
-sleep 10
+sleep 5
 
 # Check if containers are running
 if ! docker ps | grep -q "mediawiki144-mediawiki-1"; then
@@ -58,6 +58,76 @@ if ! docker ps | grep -q "mediawiki144-mysql-1"; then
 fi
 
 echo -e "${GREEN}✓ Containers are running${NC}"
+
+# Wait for MySQL to be ready to accept connections with activity monitoring
+echo -e "${YELLOW}Waiting for MySQL to be ready (monitoring activity)...${NC}"
+MAX_ATTEMPTS=90
+ATTEMPT=0
+LAST_LOG=""
+STUCK_COUNT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    # Try to connect
+    if docker exec mediawiki144-mysql-1 mysqladmin ping -h localhost -u mediawiki -pmediawiki_password --silent 2>/dev/null; then
+        echo ""
+        echo -e "${GREEN}✓ MySQL is ready${NC}"
+        break
+    fi
+
+    # Check if MySQL is still active (logs changing)
+    CURRENT_LOG=$(docker logs mediawiki144-mysql-1 --tail 1 2>&1)
+    if [ "$CURRENT_LOG" != "$LAST_LOG" ]; then
+        # Logs are changing - MySQL is actively working
+        STUCK_COUNT=0
+        echo -n "."
+    else
+        # No new logs
+        STUCK_COUNT=$((STUCK_COUNT+1))
+        if [ $STUCK_COUNT -gt 30 ]; then
+            # No log changes for 60 seconds - might be hung
+            echo ""
+            echo -e "${RED}Error: MySQL appears to be stuck (no log activity for 60s)${NC}"
+            echo -e "${YELLOW}Last log line: $CURRENT_LOG${NC}"
+            echo -e "${YELLOW}Recent MySQL logs:${NC}"
+            docker logs mediawiki144-mysql-1 --tail 20
+            exit 1
+        fi
+        echo -n "!"
+    fi
+    LAST_LOG="$CURRENT_LOG"
+
+    ATTEMPT=$((ATTEMPT+1))
+    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+        echo ""
+        echo -e "${RED}Error: MySQL failed to become ready after $MAX_ATTEMPTS attempts (3 minutes)${NC}"
+        echo -e "${YELLOW}Checking MySQL logs:${NC}"
+        docker logs mediawiki144-mysql-1 --tail 30
+        exit 1
+    fi
+
+    sleep 2
+done
+
+# Wait for MySQL to be accessible from MediaWiki container
+echo -e "${YELLOW}Verifying MySQL connectivity from MediaWiki container...${NC}"
+MAX_ATTEMPTS=15
+ATTEMPT=0
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    if docker exec mediawiki144-mediawiki-1 php -r "mysqli_connect('mysql', 'mediawiki', 'mediawiki_password', 'mediawiki') or exit(1);" 2>/dev/null; then
+        echo -e "${GREEN}✓ MySQL is accessible from MediaWiki${NC}"
+        break
+    fi
+    ATTEMPT=$((ATTEMPT+1))
+    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+        echo -e "${RED}Error: MySQL not accessible from MediaWiki container after $MAX_ATTEMPTS attempts${NC}"
+        echo -e "${YELLOW}Checking network connectivity:${NC}"
+        docker exec mediawiki144-mediawiki-1 cat /etc/hosts
+        exit 1
+    fi
+    echo -n "."
+    sleep 2
+done
+echo ""
 
 # Step 2: Initialize database
 echo -e "${YELLOW}Step 2: Initializing MediaWiki database...${NC}"

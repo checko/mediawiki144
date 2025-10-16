@@ -102,7 +102,7 @@ log "${YELLOW}═══ Step 1: Starting Docker containers ═══${NC}"
 docker compose up -d
 
 log "${YELLOW}Waiting for containers to be ready...${NC}"
-sleep 10
+sleep 5
 
 # Auto-detect container names
 MEDIAWIKI_CONTAINER=$(docker ps --format '{{.Names}}' | grep mediawiki | head -1)
@@ -121,6 +121,74 @@ fi
 log "${GREEN}✓ Containers running${NC}"
 log "  MediaWiki: $MEDIAWIKI_CONTAINER"
 log "  MySQL: $MYSQL_CONTAINER"
+
+# Wait for MySQL to be ready to accept connections with activity monitoring
+log "${YELLOW}Waiting for MySQL to be ready (monitoring activity)...${NC}"
+MAX_ATTEMPTS=90
+ATTEMPT=0
+LAST_LOG=""
+STUCK_COUNT=0
+
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    # Try to connect
+    if docker exec $MYSQL_CONTAINER mysqladmin ping -h localhost -u root -proot_password --silent 2>/dev/null; then
+        echo ""
+        log "${GREEN}✓ MySQL is ready${NC}"
+        break
+    fi
+
+    # Check if MySQL is still active (logs changing)
+    CURRENT_LOG=$(docker logs $MYSQL_CONTAINER --tail 1 2>&1)
+    if [ "$CURRENT_LOG" != "$LAST_LOG" ]; then
+        # Logs are changing - MySQL is actively working
+        STUCK_COUNT=0
+        echo -n "."
+    else
+        # No new logs
+        STUCK_COUNT=$((STUCK_COUNT+1))
+        if [ $STUCK_COUNT -gt 30 ]; then
+            # No log changes for 60 seconds - might be hung
+            echo ""
+            log "${RED}Error: MySQL appears to be stuck (no log activity for 60s)${NC}"
+            log "${YELLOW}Last log line: $CURRENT_LOG${NC}"
+            log "${YELLOW}Recent MySQL logs:${NC}"
+            docker logs $MYSQL_CONTAINER --tail 20 | tee -a "$LOG_FILE"
+            exit 1
+        fi
+        echo -n "!"
+    fi
+    LAST_LOG="$CURRENT_LOG"
+
+    ATTEMPT=$((ATTEMPT+1))
+    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+        echo ""
+        log "${RED}Error: MySQL failed to become ready after $MAX_ATTEMPTS attempts (3 minutes)${NC}"
+        log "${YELLOW}Checking MySQL logs:${NC}"
+        docker logs $MYSQL_CONTAINER --tail 30 | tee -a "$LOG_FILE"
+        exit 1
+    fi
+
+    sleep 2
+done
+
+# Wait for MySQL to be accessible from MediaWiki container
+log "${YELLOW}Verifying MySQL connectivity from MediaWiki container...${NC}"
+MAX_ATTEMPTS=15
+ATTEMPT=0
+while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+    if docker exec $MEDIAWIKI_CONTAINER php -r "mysqli_connect('mysql', 'root', 'root_password') or exit(1);" 2>/dev/null; then
+        log "${GREEN}✓ MySQL is accessible from MediaWiki${NC}"
+        break
+    fi
+    ATTEMPT=$((ATTEMPT+1))
+    if [ $ATTEMPT -eq $MAX_ATTEMPTS ]; then
+        log "${RED}Error: MySQL not accessible from MediaWiki container after $MAX_ATTEMPTS attempts${NC}"
+        exit 1
+    fi
+    echo -n "."
+    sleep 2
+done
+echo ""
 log ""
 
 # Step 2: Backup current database
@@ -149,11 +217,43 @@ docker compose exec mysql mysql -u root -proot_password -e "
     FLUSH PRIVILEGES;
 " 2>/dev/null
 
-log "  Importing SQL dump (this may take a while)..."
-if docker compose exec -T mysql mysql \
-    -u root -proot_password \
-    mediawiki < "$DB_DUMP" 2>/dev/null; then
+log "  Importing SQL dump (with progress monitoring)..."
 
+# Start import in background
+docker compose exec -T mysql mysql \
+    -u root -proot_password \
+    mediawiki < "$DB_DUMP" 2>/dev/null &
+IMPORT_PID=$!
+
+# Monitor import progress
+echo -n "  Progress: "
+LAST_TABLES=0
+LAST_SIZE=0
+while kill -0 $IMPORT_PID 2>/dev/null; do
+    # Get current table count and size
+    CURRENT_TABLES=$(docker compose exec mysql mysql -u root -proot_password -se "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='mediawiki';" 2>/dev/null | tr -d '\r' || echo "0")
+    CURRENT_SIZE=$(docker compose exec mysql mysql -u root -proot_password -se "SELECT ROUND(SUM(data_length + index_length) / 1024 / 1024, 0) FROM information_schema.tables WHERE table_schema='mediawiki';" 2>/dev/null | tr -d '\r' || echo "0")
+    CURRENT_PAGES=$(docker compose exec mysql mysql -u root -proot_password -se "SELECT COUNT(*) FROM mediawiki.page;" 2>/dev/null | tr -d '\r' || echo "0")
+
+    # Show progress if changed
+    if [ "$CURRENT_TABLES" != "$LAST_TABLES" ] || [ "$CURRENT_SIZE" != "$LAST_SIZE" ]; then
+        echo -ne "\r  Progress: ${CURRENT_TABLES} tables, ${CURRENT_SIZE}MB, ${CURRENT_PAGES} pages imported..."
+        LAST_TABLES=$CURRENT_TABLES
+        LAST_SIZE=$CURRENT_SIZE
+    else
+        echo -n "."
+    fi
+
+    sleep 3
+done
+
+# Wait for import to complete and get exit code
+wait $IMPORT_PID
+IMPORT_EXIT_CODE=$?
+
+echo ""
+
+if [ $IMPORT_EXIT_CODE -eq 0 ]; then
     # Verify import
     PAGE_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM page;" 2>/dev/null | tr -d '\r')
     REVISION_COUNT=$(docker compose exec mysql mysql -u root -proot_password -se "USE mediawiki; SELECT COUNT(*) FROM revision;" 2>/dev/null | tr -d '\r')
