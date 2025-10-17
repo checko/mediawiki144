@@ -42,22 +42,36 @@ echo ""
 echo -e "${YELLOW}Step 1: Starting Docker containers...${NC}"
 docker compose up -d
 
-# Wait for containers to be ready
+# Wait for containers to be ready with polling
 echo -e "${YELLOW}Waiting for containers to be ready...${NC}"
-sleep 5
+MAX_CONTAINER_ATTEMPTS=30
+CONTAINER_ATTEMPT=0
 
-# Check if containers are running
-if ! docker ps | grep -q "mediawiki144-mediawiki-1"; then
-    echo -e "${RED}Error: MediaWiki container is not running${NC}"
-    exit 1
-fi
+while [ $CONTAINER_ATTEMPT -lt $MAX_CONTAINER_ATTEMPTS ]; do
+    MEDIAWIKI_RUNNING=$(docker ps | grep -q "mediawiki144-mediawiki-1" && echo "yes" || echo "no")
+    MYSQL_RUNNING=$(docker ps | grep -q "mediawiki144-mysql-1" && echo "yes" || echo "no")
 
-if ! docker ps | grep -q "mediawiki144-mysql-1"; then
-    echo -e "${RED}Error: MySQL container is not running${NC}"
-    exit 1
-fi
+    if [ "$MEDIAWIKI_RUNNING" = "yes" ] && [ "$MYSQL_RUNNING" = "yes" ]; then
+        echo ""
+        echo -e "${GREEN}✓ Containers are running${NC}"
+        break
+    fi
 
-echo -e "${GREEN}✓ Containers are running${NC}"
+    CONTAINER_ATTEMPT=$((CONTAINER_ATTEMPT+1))
+    if [ $CONTAINER_ATTEMPT -eq $MAX_CONTAINER_ATTEMPTS ]; then
+        echo ""
+        if [ "$MEDIAWIKI_RUNNING" = "no" ]; then
+            echo -e "${RED}Error: MediaWiki container is not running after ${MAX_CONTAINER_ATTEMPTS} attempts${NC}"
+        fi
+        if [ "$MYSQL_RUNNING" = "no" ]; then
+            echo -e "${RED}Error: MySQL container is not running after ${MAX_CONTAINER_ATTEMPTS} attempts${NC}"
+        fi
+        exit 1
+    fi
+
+    echo -n "."
+    sleep 1
+done
 
 # Wait for MySQL to be ready to accept connections with activity monitoring
 echo -e "${YELLOW}Waiting for MySQL to be ready (monitoring activity)...${NC}"
@@ -187,8 +201,33 @@ fi
 echo -e "${YELLOW}Step 4: Restarting MediaWiki...${NC}"
 docker compose restart mediawiki
 
-# Wait for restart
-sleep 5
+# Wait for MediaWiki to be ready after restart with polling
+echo -e "${YELLOW}Waiting for MediaWiki to be ready after restart...${NC}"
+MAX_RESTART_ATTEMPTS=30
+RESTART_ATTEMPT=0
+
+while [ $RESTART_ATTEMPT -lt $MAX_RESTART_ATTEMPTS ]; do
+    # Check if MediaWiki container is running and healthy
+    if docker ps | grep -q "mediawiki144-mediawiki-1"; then
+        # Try to check if Apache is responding
+        if docker exec mediawiki144-mediawiki-1 pgrep -x apache2 > /dev/null 2>&1 || \
+           docker exec mediawiki144-mediawiki-1 pgrep -x httpd > /dev/null 2>&1; then
+            echo ""
+            echo -e "${GREEN}✓ MediaWiki is ready${NC}"
+            break
+        fi
+    fi
+
+    RESTART_ATTEMPT=$((RESTART_ATTEMPT+1))
+    if [ $RESTART_ATTEMPT -eq $MAX_RESTART_ATTEMPTS ]; then
+        echo ""
+        echo -e "${YELLOW}⚠ MediaWiki restart check timeout, but continuing...${NC}"
+        break
+    fi
+
+    echo -n "."
+    sleep 1
+done
 
 # Step 5: Copy deployed configuration for user review
 echo -e "${YELLOW}Step 5: Copying deployed configuration...${NC}"
