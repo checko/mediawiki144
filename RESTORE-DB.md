@@ -33,6 +33,12 @@ Place these files in the `data/` directory before running:
    - ZIP file containing your MediaWiki `images/` directory
    - Supports Traditional Chinese filenames (cp950/big5)
 
+**⚠️ IMPORTANT: Backup Timing**
+- The database dump and images archive must be from the **same point in time**
+- If your database backup is newer than your images backup, some images referenced in the database will be missing
+- If your images backup is newer than your database backup, extra images will be ignored (harmless)
+- **Recommendation:** Always create both backups at the same time to ensure consistency
+
 ### Required Docker Images
 
 The script requires these Docker images (pulled automatically if needed):

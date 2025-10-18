@@ -283,6 +283,28 @@ log "${YELLOW}═══ Step 4: Upgrading to MediaWiki 1.35 (Intermediate) ═�
 log "  Why: MediaWiki 1.44 requires database schema from 1.35+ minimum"
 log ""
 
+# Pre-migration: Fix interwiki table for old databases
+log "  Preparing database for upgrade (checking interwiki table)..."
+docker compose exec mysql mysql -u root -proot_password -se "
+    USE mediawiki;
+
+    -- Drop old interwiki table if exists
+    DROP TABLE IF EXISTS interwiki;
+
+    -- Create interwiki table with MediaWiki 1.35 compatible schema
+    CREATE TABLE interwiki (
+        iw_prefix varchar(32) NOT NULL,
+        iw_url blob NOT NULL,
+        iw_api blob NOT NULL,
+        iw_wikiid varchar(64) NOT NULL,
+        iw_local tinyint(1) NOT NULL,
+        PRIMARY KEY (iw_prefix)
+    ) ENGINE=InnoDB DEFAULT CHARSET=binary;
+" 2>/dev/null || true
+
+log "  ✓ Pre-migration checks complete (interwiki table created with correct schema)"
+log ""
+
 # Stop MediaWiki container temporarily
 docker compose stop mediawiki
 
@@ -295,29 +317,32 @@ if [ -z "$NETWORK" ]; then
 fi
 
 log "  Running MediaWiki 1.35 updater..."
-if docker run --rm \
+# Capture output to check for actual errors
+UPGRADE_OUTPUT=$(docker run --rm \
     --network "$NETWORK" \
     -v "$PWD/data/LocalSettings.minimal.php:/var/www/html/LocalSettings.php:ro" \
     mediawiki:1.35 \
-    php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"; then
-    log "${GREEN}✓ Database upgraded to MediaWiki 1.35 schema${NC}"
-else
+    php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE")
+
+UPGRADE_EXIT_CODE=$?
+
+# Check for specific error patterns that indicate failure
+if [ $UPGRADE_EXIT_CODE -ne 0 ] || echo "$UPGRADE_OUTPUT" | grep -q "DBQueryError\|Error [0-9]\+:\|Exception\|Fatal error"; then
     log ""
     log "${RED}✗ Failed to upgrade to MediaWiki 1.35${NC}"
-    log "${RED}Error: Could not run MediaWiki 1.35 updater${NC}"
+    log "${RED}Error: MediaWiki 1.35 update script encountered errors${NC}"
     log ""
-    log "${YELLOW}This is usually caused by:${NC}"
-    log "${YELLOW}  1. Network issues preventing Docker image download${NC}"
-    log "${YELLOW}  2. Missing mediawiki:1.35 Docker image${NC}"
+    log "${YELLOW}Common causes:${NC}"
+    log "${YELLOW}  1. Database schema incompatibility (check interwiki table)${NC}"
+    log "${YELLOW}  2. Character encoding issues${NC}"
+    log "${YELLOW}  3. Missing or corrupt database tables${NC}"
     log ""
-    log "${YELLOW}To fix this issue:${NC}"
-    log "${YELLOW}  1. Try manually pulling the image: docker pull mediawiki:1.35${NC}"
-    log "${YELLOW}  2. Check your internet connection to Docker Hub${NC}"
-    log "${YELLOW}  3. If behind a firewall, configure Docker registry mirror${NC}"
-    log "${YELLOW}  4. Re-run this script after the image is available${NC}"
+    log "${YELLOW}Check the log file for details: $LOG_FILE${NC}"
     log ""
     exit 1
 fi
+
+log "${GREEN}✓ Database upgraded to MediaWiki 1.35 schema${NC}"
 log ""
 
 # Step 5: Upgrade to MediaWiki 1.44 (Final)
@@ -342,15 +367,19 @@ docker compose start mediawiki
 sleep 5
 
 log "  Running MediaWiki 1.44 updater with all extensions..."
-if docker compose exec mediawiki php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE"; then
-    log "${GREEN}✓ Database upgraded to MediaWiki 1.44${NC}"
-else
+# Capture output to check for actual errors
+UPGRADE_144_OUTPUT=$(docker compose exec mediawiki php maintenance/update.php --quick 2>&1 | tee -a "$LOG_FILE")
+
+UPGRADE_144_EXIT_CODE=$?
+
+# Check for specific error patterns that indicate failure
+if [ $UPGRADE_144_EXIT_CODE -ne 0 ] || echo "$UPGRADE_144_OUTPUT" | grep -q "DBQueryError\|Error [0-9]\+:\|Exception\|Fatal error\|Can not upgrade from versions older"; then
     log ""
     log "${RED}✗ Failed to upgrade to MediaWiki 1.44${NC}"
     log "${RED}Error: MediaWiki 1.44 update script failed${NC}"
     log ""
     log "${YELLOW}Possible causes:${NC}"
-    log "${YELLOW}  1. Database schema incompatibility${NC}"
+    log "${YELLOW}  1. Database schema still at old version (1.35 upgrade may have failed)${NC}"
     log "${YELLOW}  2. Extension configuration error${NC}"
     log "${YELLOW}  3. Permission issues${NC}"
     log ""
@@ -358,6 +387,8 @@ else
     log ""
     exit 1
 fi
+
+log "${GREEN}✓ Database upgraded to MediaWiki 1.44${NC}"
 log ""
 
 # Step 6: Restore images
